@@ -17,11 +17,10 @@ function getTargetDate(): string {
 }
 
 async function main(): Promise<void> {
-  logger.info('Checking for Grêmio matches today...')
+  const today = getTargetDate()
+  logger.info({ date: today }, 'Checking for Grêmio matches...')
 
   const matches = await fetchMatches()
-  const today = getTargetDate()
-
   const todayMatches = matches.filter(match => {
     const matchDate = new Date(match.kickoff_at * 1000).toLocaleDateString('en-CA', { timeZone: TZ })
     return matchDate === today
