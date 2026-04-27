@@ -40,6 +40,8 @@
       margin-bottom: 1.75rem;
     }
 
+    .subtitle strong { color: #e6edf3; }
+
     label {
       display: block;
       font-size: 0.8rem;
@@ -50,7 +52,6 @@
       margin-bottom: 0.4rem;
     }
 
-    input[type="date"],
     input[type="password"] {
       width: 100%;
       background: #0d1117;
@@ -64,18 +65,7 @@
       transition: border-color 0.15s;
     }
 
-    input[type="date"]:focus,
-    input[type="password"]:focus {
-      border-color: #58a6ff;
-    }
-
-    .pat-row {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .pat-row input { margin-bottom: 0; flex: 1; }
+    input[type="password"]:focus { border-color: #58a6ff; }
 
     .pat-hint {
       font-size: 0.78rem;
@@ -140,15 +130,10 @@
 <body>
 <div class="card">
   <div class="logo">trico-poll</div>
-  <div class="subtitle">Enviar enquete do Grêmio no WhatsApp</div>
-
-  <label for="date-input">Data do jogo</label>
-  <input type="date" id="date-input">
+  <div class="subtitle" id="subtitle">Enviar enquete do Grêmio no WhatsApp</div>
 
   <label for="pat-input">GitHub Token (actions:write)</label>
-  <div class="pat-row">
-    <input type="password" id="pat-input" placeholder="github_pat_…">
-  </div>
+  <input type="password" id="pat-input" placeholder="github_pat_…">
   <div class="pat-hint">
     Crie um
     <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
@@ -176,23 +161,15 @@
   const REPO  = 'trico-poll';
   const WORKFLOW = 'send-poll.yml';
 
-  const dateInput  = document.getElementById('date-input');
-  const patInput   = document.getElementById('pat-input');
-  const savePat    = document.getElementById('save-pat');
-  const sendBtn    = document.getElementById('send-btn');
-  const statusEl   = document.getElementById('status');
+  const patInput = document.getElementById('pat-input');
+  const savePat  = document.getElementById('save-pat');
+  const sendBtn  = document.getElementById('send-btn');
+  const statusEl = document.getElementById('status');
 
-  // Pre-fill date from query param or today (BRT)
-  const params = new URLSearchParams(window.location.search);
-  const dateParam = params.get('date');
-  if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-    dateInput.value = dateParam;
-  } else {
-    const brt = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
-    dateInput.value = brt;
-  }
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  document.getElementById('subtitle').innerHTML =
+    `Enviar enquete do Grêmio · <strong>${today}</strong>`;
 
-  // Restore saved token
   const saved = localStorage.getItem('gh_pat');
   if (saved) { patInput.value = saved; savePat.checked = true; }
 
@@ -202,11 +179,8 @@
   }
 
   sendBtn.addEventListener('click', async () => {
-    const pat  = patInput.value.trim();
-    const date = dateInput.value;
-
-    if (!pat)  { setStatus('error', 'Informe o GitHub Token.'); return; }
-    if (!date) { setStatus('error', 'Selecione uma data.'); return; }
+    const pat = patInput.value.trim();
+    if (!pat) { setStatus('error', 'Informe o GitHub Token.'); return; }
 
     if (savePat.checked) {
       localStorage.setItem('gh_pat', pat);
@@ -226,12 +200,12 @@
           'Accept': 'application/vnd.github+json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ref: 'main', inputs: { date } }),
+        body: JSON.stringify({ ref: 'main', inputs: { date: today } }),
       });
 
       if (res.status === 204) {
         const runsUrl = `https://github.com/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
-        setStatus('success', `Workflow disparado para <strong>${date}</strong>. <a href="${runsUrl}" target="_blank" rel="noopener">Ver execução →</a>`);
+        setStatus('success', `Workflow disparado para <strong>${today}</strong>. <a href="${runsUrl}" target="_blank" rel="noopener">Ver execução →</a>`);
       } else {
         const body = await res.json().catch(() => ({}));
         setStatus('error', `Erro ${res.status}: ${body.message ?? 'falha desconhecida'}`);
