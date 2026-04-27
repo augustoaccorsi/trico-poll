@@ -10,10 +10,12 @@ function getTargetDate(): string {
   const arg = process.argv[2]?.trim()
   const override = arg || process.env.POLL_DATE?.trim()
   if (override) {
-    logger.info({ date: override }, 'Using provided date')
+    logger.info(`Using provided date: ${override}`)
     return override
   }
-  return new Date().toLocaleDateString('en-CA', { timeZone: TZ })
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ })
+  logger.info(`No date provided, using today: ${today}`)
+  return today
 }
 
 async function main(): Promise<void> {
