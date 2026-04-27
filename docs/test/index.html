@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>trico-poll · Enquete de teste</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 0.875rem;
+      color: #8b949e;
+      margin-bottom: 1.75rem;
+    }
+
+    .warning {
+      background: #3b2a0a;
+      border: 1px solid #7d4e17;
+      border-radius: 6px;
+      color: #e3b341;
+      font-size: 0.82rem;
+      padding: 0.6rem 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="password"]:focus { border-color: #58a6ff; }
+
+    .pat-hint {
+      font-size: 0.78rem;
+      color: #8b949e;
+      margin-bottom: 1.25rem;
+    }
+
+    .pat-hint a { color: #58a6ff; }
+
+    .save-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      color: #8b949e;
+    }
+
+    .save-row input[type="checkbox"] { accent-color: #58a6ff; }
+
+    .matches-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .matches {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .match-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      cursor: pointer;
+      font-size: 0.875rem;
+      padding: 0.65rem 1rem;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .match-btn:hover:not(:disabled) {
+      background: #30363d;
+      border-color: #58a6ff;
+    }
+
+    .match-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .match-teams { font-weight: 600; }
+    .match-comp  { font-size: 0.78rem; color: #8b949e; }
+
+    .status {
+      font-size: 0.875rem;
+      border-radius: 6px;
+      padding: 0.65rem 0.875rem;
+      display: none;
+    }
+
+    .status.info    { background: #1f3a5f; color: #79c0ff; display: block; }
+    .status.success { background: #1a3828; color: #56d364; display: block; }
+    .status.error   { background: #3b1a1a; color: #f85149; display: block; }
+
+    .status a { color: inherit; font-weight: 600; }
+
+    .nav-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.82rem;
+      color: #8b949e;
+    }
+
+    .nav-link a { color: #58a6ff; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">trico-poll</div>
+  <div class="subtitle">Enquete de teste com jogos fictícios</div>
+
+  <div class="warning">
+    ⚠️ Esta opção envia uma enquete real para o grupo do WhatsApp usando dados fictícios.
+  </div>
+
+  <label for="pat-input">GitHub Token (actions:write)</label>
+  <input type="password" id="pat-input" placeholder="github_pat_…">
+  <div class="pat-hint">
+    Crie um
+    <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
+      fine-grained PAT
+    </a>
+    com permissão <strong>Actions → Read and write</strong> neste repositório.
+  </div>
+
+  <div class="save-row">
+    <input type="checkbox" id="save-pat">
+    <label for="save-pat" style="text-transform:none;letter-spacing:0;font-size:0.85rem;color:#8b949e;margin:0;">
+      Salvar token no navegador (localStorage)
+    </label>
+  </div>
+
+  <div class="matches-label">Escolha o jogo fictício</div>
+  <div class="matches">
+    <button class="match-btn" data-index="0">
+      <span class="match-teams">Grêmio × Adversário</span>
+      <span class="match-comp">Brasileirão Série A</span>
+    </button>
+    <button class="match-btn" data-index="1">
+      <span class="match-teams">Adversário × Grêmio</span>
+      <span class="match-comp">Gauchão Série A1</span>
+    </button>
+    <button class="match-btn" data-index="2">
+      <span class="match-teams">Grêmio × Athletico Paranaense</span>
+      <span class="match-comp">Copa do Brasil</span>
+    </button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="nav-link"><a href="../">← Início</a> · <a href="../today/">Enquete real</a></div>
+</div>
+
+<script>
+  const OWNER = 'augustoaccorsi';
+  const REPO  = 'trico-poll';
+  const WORKFLOW = 'test-poll.yml';
+
+  const patInput  = document.getElementById('pat-input');
+  const savePat   = document.getElementById('save-pat');
+  const statusEl  = document.getElementById('status');
+  const matchBtns = document.querySelectorAll('.match-btn');
+
+  const saved = localStorage.getItem('gh_pat');
+  if (saved) { patInput.value = saved; savePat.checked = true; }
+
+  function setStatus(type, html) {
+    statusEl.className = 'status ' + type;
+    statusEl.innerHTML = html;
+  }
+
+  function setLoading(loading) {
+    matchBtns.forEach(btn => { btn.disabled = loading; });
+  }
+
+  matchBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pat   = patInput.value.trim();
+      const index = btn.dataset.index;
+
+      if (!pat) { setStatus('error', 'Informe o GitHub Token.'); return; }
+
+      if (savePat.checked) {
+        localStorage.setItem('gh_pat', pat);
+      } else {
+        localStorage.removeItem('gh_pat');
+      }
+
+      setLoading(true);
+      setStatus('info', 'Disparando workflow…');
+
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/dispatches`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${pat}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ref: 'main', inputs: { index } }),
+        });
+
+        if (res.status === 204) {
+          const runsUrl = `https://github.com/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
+          const teams = btn.querySelector('.match-teams').textContent;
+          setStatus('success', `Workflow disparado para <strong>${teams}</strong>. <a href="${runsUrl}" target="_blank" rel="noopener">Ver execução →</a>`);
+        } else {
+          const body = await res.json().catch(() => ({}));
+          setStatus('error', `Erro ${res.status}: ${body.message ?? 'falha desconhecida'}`);
+        }
+      } catch (err) {
+        setStatus('error', `Erro de rede: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>trico-poll</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 0.35rem;
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: #8b949e;
+      margin-bottom: 2rem;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .menu-item {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      cursor: pointer;
+      display: block;
+      padding: 1rem 1.25rem;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .menu-item:hover {
+      background: #30363d;
+      border-color: #58a6ff;
+    }
+
+    .menu-item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .menu-item-desc {
+      font-size: 0.8rem;
+      color: #8b949e;
+    }
+
+    .footer {
+      margin-top: 1.75rem;
+      font-size: 0.78rem;
+      color: #8b949e;
+      text-align: center;
+    }
+
+    .footer a { color: #58a6ff; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">trico-poll</div>
+  <div class="tagline">Enquetes do Grêmio no WhatsApp</div>
+
+  <div class="menu">
+    <a class="menu-item" href="today/">
+      <div class="menu-item-title">Enviar enquete de hoje</div>
+      <div class="menu-item-desc">Busca o jogo do dia e envia a enquete para o grupo</div>
+    </a>
+    <a class="menu-item" id="today-date-link" href="today/">
+      <div class="menu-item-title">Enviar enquete por data</div>
+      <div class="menu-item-desc">Escolha uma data específica para enviar a enquete</div>
+    </a>
+    <a class="menu-item" href="test/">
+      <div class="menu-item-title">Enquete de teste</div>
+      <div class="menu-item-desc">Envia uma enquete com dados fictícios para validar a integração</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    <a href="https://github.com/augustoaccorsi/trico-poll" target="_blank" rel="noopener">
+      github.com/augustoaccorsi/trico-poll
+    </a>
+  </div>
+</div>
+
+<script>
+  // Pre-fill "by date" link with today's BRT date as query param
+  const brt = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  document.getElementById('today-date-link').href = `today/?date=${brt}`;
+</script>
+</body>
+</html>
