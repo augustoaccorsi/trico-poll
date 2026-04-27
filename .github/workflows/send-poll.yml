@@ -1,0 +1,42 @@
+name: Send Grêmio Poll
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 5AM BRT (UTC-3, no DST)
+  workflow_dispatch:      # allow manual trigger from GitHub UI
+
+jobs:
+  send-poll:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore WhatsApp session
+        run: |
+          mkdir -p auth_info_baileys
+          echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
+
+      - name: Send poll if match today
+        env:
+          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
+          FORZA_TEAM_ID: '17474'
+          TZ_BRASILIA: 'America/Sao_Paulo'
+          LOG_LEVEL: 'info'
+        run: npm run send-today
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}
