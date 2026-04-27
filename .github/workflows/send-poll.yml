@@ -27,6 +27,12 @@ jobs:
 
       - name: Restore WhatsApp session
         run: |
+          if [ -z "${{ secrets.WA_SESSION }}" ]; then
+            echo "ERROR: WA_SESSION secret is not set."
+            echo "Run 'npm run dev' locally to scan the QR, then encode the session:"
+            echo "  tar -czf - auth_info_baileys/ | base64 | gh secret set WA_SESSION -R ${{ github.repository }} --hostname github.com"
+            exit 1
+          fi
           mkdir -p auth_info_baileys
           echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
 
