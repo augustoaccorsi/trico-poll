@@ -29,7 +29,7 @@ const FAKE_MATCHES: ForzaMatch[] = [
     status: 'before',
     kickoff_at: new Date(Date.now() + 10800 * 1000).toISOString(),
     home_team: { id: GREMIO_ID, name: 'Grêmio' },
-    away_team: { id: 7777, name: 'Athletico Paranaense' },
+    away_team: { id: 7777, name: 'Adversário' },
     tournament: { id: 3, name: 'Copa do Brasil', slug: 'copa-do-brasil' },
   },
 ]
