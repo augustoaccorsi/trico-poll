@@ -3,7 +3,7 @@ import type { ForzaMatch } from '../api/types'
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
 export function buildPollQuestion(match: ForzaMatch): string {
-  const date = new Date(match.kickoff_at * 1000)
+  const date = new Date(match.kickoff_at)
   const timeStr = date.toLocaleTimeString('pt-BR', {
     timeZone: TZ,
     hour: '2-digit',

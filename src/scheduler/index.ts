@@ -47,7 +47,7 @@ export async function scheduleAllPolls(): Promise<void> {
   let scheduled = 0
 
   for (const match of matches) {
-    const kickoffDate = new Date(match.kickoff_at * 1000)
+    const kickoffDate = new Date(match.kickoff_at)
 
     // Get the game date in Brasilia local time
     const localDateStr = kickoffDate.toLocaleDateString('en-CA', { timeZone: TZ })

@@ -11,7 +11,7 @@ const FAKE_MATCHES: ForzaMatch[] = [
   {
     id: 1,
     status: 'before',
-    kickoff_at: Math.floor(Date.now() / 1000) + 3600, // 1h from now
+    kickoff_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1h from now
     home_team: { id: GREMIO_ID, name: 'Grêmio' },
     away_team: { id: 9999, name: 'Adversário' },
     tournament: { id: 1, name: 'Brasileirão Série A', slug: 'brasileirao' },
@@ -19,7 +19,7 @@ const FAKE_MATCHES: ForzaMatch[] = [
   {
     id: 2,
     status: 'before',
-    kickoff_at: Math.floor(Date.now() / 1000) + 7200,
+    kickoff_at: new Date(Date.now() + 7200 * 1000).toISOString(),
     home_team: { id: 8888, name: 'Adversário' },
     away_team: { id: GREMIO_ID, name: 'Grêmio' },
     tournament: { id: 2, name: 'Gauchão Série A1', slug: 'gaucho-1' },
@@ -27,7 +27,7 @@ const FAKE_MATCHES: ForzaMatch[] = [
   {
     id: 3,
     status: 'before',
-    kickoff_at: Math.floor(Date.now() / 1000) + 10800,
+    kickoff_at: new Date(Date.now() + 10800 * 1000).toISOString(),
     home_team: { id: GREMIO_ID, name: 'Grêmio' },
     away_team: { id: 7777, name: 'Athletico Paranaense' },
     tournament: { id: 3, name: 'Copa do Brasil', slug: 'copa-do-brasil' },

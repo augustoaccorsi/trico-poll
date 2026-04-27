@@ -24,7 +24,7 @@ async function main(): Promise<void> {
 
   const matches = await fetchMatches()
   const todayMatches = matches.filter(match => {
-    const matchDate = new Date(match.kickoff_at * 1000).toLocaleDateString('en-CA', { timeZone: TZ })
+    const matchDate = new Date(match.kickoff_at).toLocaleDateString('en-CA', { timeZone: TZ })
     return matchDate === today
   })
 

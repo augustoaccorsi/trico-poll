@@ -8,7 +8,7 @@ export interface ForzaTeam {
 export interface ForzaMatch {
   id: number
   status: 'before' | 'live' | 'after'
-  kickoff_at: number
+  kickoff_at: string
   home_team: ForzaTeam
   away_team: ForzaTeam
   tournament: {
