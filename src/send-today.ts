@@ -7,9 +7,10 @@ import { logger } from './utils/logger'
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
 function getTargetDate(): string {
-  const override = process.env.POLL_DATE?.trim()
+  const arg = process.argv[2]?.trim()
+  const override = arg || process.env.POLL_DATE?.trim()
   if (override) {
-    logger.info({ date: override }, 'Using provided POLL_DATE')
+    logger.info({ date: override }, 'Using provided date')
     return override
   }
   return new Date().toLocaleDateString('en-CA', { timeZone: TZ })
