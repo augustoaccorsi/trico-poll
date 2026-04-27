@@ -6,7 +6,12 @@ import { logger } from './utils/logger'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
-function getTodayBRT(): string {
+function getTargetDate(): string {
+  const override = process.env.POLL_DATE?.trim()
+  if (override) {
+    logger.info({ date: override }, 'Using provided POLL_DATE')
+    return override
+  }
   return new Date().toLocaleDateString('en-CA', { timeZone: TZ })
 }
 
@@ -14,7 +19,7 @@ async function main(): Promise<void> {
   logger.info('Checking for Grêmio matches today...')
 
   const matches = await fetchMatches()
-  const today = getTodayBRT()
+  const today = getTargetDate()
 
   const todayMatches = matches.filter(match => {
     const matchDate = new Date(match.kickoff_at * 1000).toLocaleDateString('en-CA', { timeZone: TZ })
