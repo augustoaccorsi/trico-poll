@@ -36,7 +36,7 @@ jobs:
 
       - name: Send test poll
         env:
-          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
+          WA_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
           LOG_LEVEL: 'info'
         run: npm run test:poll -- ${{ inputs.index }}
 
