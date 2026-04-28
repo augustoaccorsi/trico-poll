@@ -27,10 +27,19 @@ jobs:
           mkdir -p auth_info_baileys
           echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
 
+      - name: Pre-fetch UFMG HTML
+        run: |
+          mkdir -p /tmp/ufmg
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/champion.html "https://www.mat.ufmg.br/futebol/campeao_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/libertadores.html "https://www.mat.ufmg.br/futebol/classificacao-para-libertadores_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/sulamericana.html "https://www.mat.ufmg.br/futebol/classificacao-para-sulamericana_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/relegation.html "https://www.mat.ufmg.br/futebol/rebaixamento_seriea/"
+
       - name: Send test probabilities
         env:
           WA_TEST_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
           LOG_LEVEL: 'info'
+          UFMG_HTML_DIR: /tmp/ufmg
         run: npm run test:probabilities
 
       - name: Save updated session

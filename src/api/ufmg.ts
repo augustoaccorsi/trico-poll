@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises'
 import { logger } from '../utils/logger'
 
 export interface TeamProbabilities {
@@ -55,18 +56,26 @@ function extractProbability(html: string, teamName: string): number | null {
   return null
 }
 
+const HTML_DIR = process.env.UFMG_HTML_DIR
+
 export async function fetchTeamProbabilities(teamName: string): Promise<TeamProbabilities> {
+  if (HTML_DIR) logger.info({ dir: HTML_DIR }, 'Reading UFMG HTML from local files')
   const entries = await Promise.all(
     Object.entries(ENDPOINTS).map(async ([key, url]) => {
       try {
-        const res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; trico-poll/1.0)' },
-        })
-        if (!res.ok) {
-          logger.warn({ key, url, status: res.status }, 'UFMG endpoint returned non-OK status')
-          return [key, null] as const
+        let html: string
+        if (HTML_DIR) {
+          html = await readFile(`${HTML_DIR}/${key}.html`, 'utf8')
+        } else {
+          const res = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; trico-poll/1.0)' },
+          })
+          if (!res.ok) {
+            logger.warn({ key, url, status: res.status }, 'UFMG endpoint returned non-OK status')
+            return [key, null] as const
+          }
+          html = await res.text()
         }
-        const html = await res.text()
         const prob = extractProbability(html, teamName)
         logger.info({ key, prob }, 'Parsed probability')
         return [key, prob] as const
