@@ -2,7 +2,7 @@ import type { ForzaMatch } from '../api/types'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 const GREMIO_ID = parseInt(process.env.FORZA_TEAM_ID ?? '17474', 10)
-const FLAG = '🇧🇷'
+const FLAG = '🇪🇪'
 
 function titleName(team: { id: number; name: string }, side: 'home' | 'away'): string {
   if (team.id !== GREMIO_ID) return team.name
