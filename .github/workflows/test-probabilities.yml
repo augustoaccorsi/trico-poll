@@ -48,5 +48,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           GH_HOST: github.com
         run: |
+          ls auth_info_baileys/pre-key-* 2>/dev/null | sort -V | head -n -30 | xargs rm -f 2>/dev/null || true
+          rm -f auth_info_baileys/session-* 2>/dev/null || true
           NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
           echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}
