@@ -2,7 +2,7 @@ name: Send Grêmio Poll
 
 on:
   schedule:
-    - cron: '0 15 * * *' # 12PM BRT (UTC-3, no DST)
+    - cron: '0 6 * * *' # 5AM BRT (UTC-3, no DST)
   workflow_dispatch:
     inputs:
       date:
