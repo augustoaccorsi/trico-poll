@@ -1,17 +1,15 @@
 import type { ForzaMatch } from '../api/types'
+import { getTeamEmoji } from './teamEmojis'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
-const GREMIO_ID = parseInt(process.env.FORZA_TEAM_ID ?? '17474', 10)
-const FLAG = '🇪🇪'
 
 function titleName(team: { id: number; name: string }, side: 'home' | 'away'): string {
-  if (team.id !== GREMIO_ID) return team.name
-  return side === 'home' ? `${FLAG} ${team.name}` : `${team.name} ${FLAG}`
+  const emoji = getTeamEmoji(team.name)
+  return side === 'home' ? `${emoji} ${team.name}` : `${team.name} ${emoji}`
 }
 
 function optionName(team: { id: number; name: string }): string {
-  if (team.id !== GREMIO_ID) return team.name
-  return `${FLAG} ${team.name}`
+  return `${getTeamEmoji(team.name)} ${team.name}`
 }
 
 export function buildPollQuestion(match: ForzaMatch): string {
