@@ -39,3 +39,12 @@ jobs:
           WA_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
           LOG_LEVEL: 'info'
         run: npm run test:poll -- ${{ inputs.index }}
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_HOST: github.com
+        run: |
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}
