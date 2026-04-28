@@ -41,3 +41,12 @@ jobs:
           LOG_LEVEL: 'info'
           UFMG_HTML_DIR: /tmp/ufmg
         run: npm run test:probabilities
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_HOST: github.com
+        run: |
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}
