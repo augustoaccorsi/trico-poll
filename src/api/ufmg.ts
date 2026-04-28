@@ -59,10 +59,16 @@ export async function fetchTeamProbabilities(teamName: string): Promise<TeamProb
   const entries = await Promise.all(
     Object.entries(ENDPOINTS).map(async ([key, url]) => {
       try {
-        const res = await fetch(url)
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; trico-poll/1.0)' },
+        })
+        if (!res.ok) {
+          logger.warn({ key, url, status: res.status }, 'UFMG endpoint returned non-OK status')
+          return [key, null] as const
+        }
         const html = await res.text()
         const prob = extractProbability(html, teamName)
-        logger.debug({ key, prob }, 'Parsed probability')
+        logger.info({ key, prob }, 'Parsed probability')
         return [key, prob] as const
       } catch (err) {
         logger.warn({ key, url, err }, 'Failed to fetch UFMG endpoint')
