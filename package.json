@@ -9,7 +9,9 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "nodemon --exec \"tsx src/index.ts\"",
     "test:poll": "tsx src/test-poll.ts",
-    "send-today": "tsx src/send-today.ts"
+    "test:probabilities": "tsx src/test-probabilities.ts",
+    "send-today": "tsx src/send-today.ts",
+    "send-probabilities": "tsx src/send-probabilities.ts"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",
