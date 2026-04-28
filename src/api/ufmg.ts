@@ -55,22 +55,11 @@ function extractProbability(html: string, teamName: string): number | null {
   return null
 }
 
-// UFMG's server blocks GitHub Actions (Azure) IPs at the firewall level.
-// When running in CI, route requests through a proxy via UFMG_PROXY env var.
-// Default proxy for GitHub Actions: allorigins.win
-const PROXY = process.env.UFMG_PROXY
-  ?? (process.env.GITHUB_ACTIONS === 'true' ? 'https://api.allorigins.win/raw?url=' : '')
-
-function proxyUrl(url: string): string {
-  return PROXY ? `${PROXY}${encodeURIComponent(url)}` : url
-}
-
 export async function fetchTeamProbabilities(teamName: string): Promise<TeamProbabilities> {
-  if (PROXY) logger.info({ proxy: PROXY }, 'Using proxy for UFMG requests')
   const entries = await Promise.all(
     Object.entries(ENDPOINTS).map(async ([key, url]) => {
       try {
-        const res = await fetch(proxyUrl(url), {
+        const res = await fetch(url, {
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; trico-poll/1.0)' },
         })
         if (!res.ok) {
