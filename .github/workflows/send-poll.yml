@@ -25,39 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check if poll already sent today
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          TODAY=$(TZ=America/Sao_Paulo date +%Y-%m-%d)
-          SENT=""
-          while IFS=$'\t' read -r id ts; do
-            day=$(TZ=America/Sao_Paulo date -d "$ts" +%Y-%m-%d)
-            [ "$day" != "$TODAY" ] && continue
-            step=$(gh run view "$id" --repo ${{ github.repository }} \
-              --json jobs \
-              --jq '.jobs[].steps[] | select(.name == "Send poll if match today") | .conclusion // "skipped"')
-            if [ "$step" != "skipped" ]; then
-              SENT="$id"
-              break
-            fi
-          done < <(gh run list \
-            --repo ${{ github.repository }} \
-            --workflow send-poll.yml \
-            --status success \
-            --json databaseId,createdAt \
-            --limit 5 \
-            | jq -r '.[] | [.databaseId|tostring, .createdAt] | @tsv')
-          if [ -n "$SENT" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "Poll already sent today (run $SENT) — skipping."
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Restore WhatsApp session
-        if: steps.check.outputs.skip != 'true'
         run: |
           if [ -z "${{ secrets.WA_SESSION }}" ]; then
             echo "ERROR: WA_SESSION secret is not set."
@@ -69,7 +37,6 @@ jobs:
           echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
 
       - name: Send poll if match today
-        if: steps.check.outputs.skip != 'true'
         env:
           WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
           FORZA_TEAM_ID: '17474'
@@ -79,7 +46,7 @@ jobs:
         run: npm run send-today
 
       - name: Save updated session
-        if: always() && steps.check.outputs.skip != 'true'
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           GH_HOST: github.com
