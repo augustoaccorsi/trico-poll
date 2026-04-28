@@ -38,6 +38,7 @@ jobs:
             --json createdAt \
             --limit 10 \
             | jq -r '.[].createdAt' \
+            | while read ts; do TZ=America/Sao_Paulo date -d "$ts" +%Y-%m-%d; done \
             | grep "^$TODAY" | head -1)
           if [ -n "$SENT" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
