@@ -134,8 +134,8 @@ tar -czf - auth_info_baileys/ | base64 | gh secret set WA_SESSION -R <owner>/<re
 
 | Variable | Required | Description |
 |---|---|---|
-| `WA_GROUP_JID` | Yes | WhatsApp production group JID |
-| `WA_TEST_GROUP_JID` | No | WhatsApp test group JID (used by test scripts) |
+| `WA_GROUP_JID` | Yes | WhatsApp production group JID (comma-separated for multiple groups) |
+| `WA_TEST_GROUP_JID` | No | WhatsApp test group JID (comma-separated for multiple groups) |
 | `WA_HELLO_GROUP_JID` | No | WhatsApp group JID for the daily good morning message |
 | `WA_HELLO_ID` | No | Tobias's WhatsApp JID for @mention (`5511...@s.whatsapp.net`) |
 | `FORZA_TEAM_ID` | No | Grêmio's Forza Football team ID (default: `17474`) |
@@ -170,6 +170,7 @@ src/
 │   └── message.ts            # Send text/mention messages to group
 └── utils/
     ├── logger.ts             # Pino logger
+    ├── env.ts                # Parse comma-separated group JIDs from env vars
     ├── formatPoll.ts         # Build Série A poll question and options
     ├── formatWcPoll.ts       # Build WC poll question and options
     ├── teamEmojis.ts         # Brazilian club → flag/emoji map

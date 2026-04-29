@@ -3,6 +3,7 @@ import { startWhatsApp, getSocket } from './whatsapp/client'
 import { sendTextMessage } from './whatsapp/message'
 import { fetchTeamProbabilities } from './api/ufmg'
 import { logger } from './utils/logger'
+import { parseGroupJids } from './utils/env'
 
 function fmt(prob: number | null): string {
   if (prob === null) return 'N/A'
@@ -21,8 +22,8 @@ function teamSection(name: string, flag: string, probs: Awaited<ReturnType<typeo
 }
 
 async function main(): Promise<void> {
-  const groupJid = process.env.WA_GROUP_JID?.trim()
-  if (!groupJid) {
+  const groupJids = parseGroupJids(process.env.WA_GROUP_JID)
+  if (groupJids.length === 0) {
     logger.error('WA_GROUP_JID is not set')
     process.exit(1)
   }
@@ -43,7 +44,9 @@ async function main(): Promise<void> {
   await startWhatsApp()
   const sock = await getSocket()
 
-  await sendTextMessage(sock, groupJid, message)
+  for (const jid of groupJids) {
+    await sendTextMessage(sock, jid, message)
+  }
 
   logger.info('Probabilities sent. Exiting.')
   await new Promise(r => setTimeout(r, 3000))

@@ -4,15 +4,16 @@ import { sendPoll } from '../whatsapp/poll'
 import { getSocket } from '../whatsapp/client'
 import { addJob, clearAll, size } from './jobStore'
 import { logger } from '../utils/logger'
+import { parseGroupJids } from '../utils/env'
 
-const GROUP_JID_ENV = process.env.WA_GROUP_JID?.trim()
+const GROUP_JIDS = parseGroupJids(process.env.WA_GROUP_JID)
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 const POLL_HOUR = parseInt(process.env.POLL_CRON_HOUR ?? '5', 10)
 
-let groupJid: string | null = null
+let resolvedJids: string[] | null = null
 
-async function resolveGroupJid(): Promise<string> {
-  if (groupJid) return groupJid
+async function resolveGroupJids(): Promise<string[]> {
+  if (resolvedJids) return resolvedJids
 
   const sock = await getSocket()
   const groups = await sock.groupFetchAllParticipating()
@@ -23,22 +24,18 @@ async function resolveGroupJid(): Promise<string> {
     logger.info({ jid, name: meta.subject }, '  group')
   }
 
-  if (!GROUP_JID_ENV) {
+  if (GROUP_JIDS.length === 0) {
     throw new Error('WA_GROUP_JID is required. Set it in .env using the JID logged above.')
   }
 
-  if (!groups[GROUP_JID_ENV]) {
-    throw new Error(`WA_GROUP_JID "${GROUP_JID_ENV}" not found among groups this account is in.`)
-  }
-
-  groupJid = GROUP_JID_ENV
-  logger.info({ groupJid, name: groups[GROUP_JID_ENV].subject }, 'Resolved target group')
-  return groupJid
+  resolvedJids = GROUP_JIDS
+  logger.info({ groupJids: resolvedJids }, 'Resolved target group(s)')
+  return resolvedJids
 }
 
 export async function scheduleAllPolls(): Promise<void> {
   const sock = await getSocket()
-  const jid = await resolveGroupJid()
+  const jids = await resolveGroupJids()
   const matches = await fetchMatches()
 
   logger.info({ count: matches.length }, 'Fetched upcoming matches')
@@ -73,7 +70,9 @@ export async function scheduleAllPolls(): Promise<void> {
       cronExpr,
       async () => {
         try {
-          await sendPoll(sock, jid, match)
+          for (const jid of jids) {
+            await sendPoll(sock, jid, match)
+          }
         } catch (err) {
           logger.error({ err, matchId: match.id }, 'Failed to send poll')
         }

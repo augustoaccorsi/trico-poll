@@ -3,6 +3,7 @@ import { fetchMatches } from './api/forza'
 import { startWhatsApp, getSocket } from './whatsapp/client'
 import { sendPoll } from './whatsapp/poll'
 import { logger } from './utils/logger'
+import { parseGroupJids } from './utils/env'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
@@ -35,8 +36,8 @@ async function main(): Promise<void> {
 
   logger.info({ count: todayMatches.length, today }, 'Match(es) found today — sending poll(s)')
 
-  const groupJid = process.env.WA_GROUP_JID?.trim()
-  if (!groupJid) {
+  const groupJids = parseGroupJids(process.env.WA_GROUP_JID)
+  if (groupJids.length === 0) {
     logger.error('WA_GROUP_JID is not set')
     process.exit(1)
   }
@@ -45,7 +46,9 @@ async function main(): Promise<void> {
   const sock = await getSocket()
 
   for (const match of todayMatches) {
-    await sendPoll(sock, groupJid, match)
+    for (const jid of groupJids) {
+      await sendPoll(sock, jid, match)
+    }
   }
 
   logger.info('All polls sent. Exiting.')

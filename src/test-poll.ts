@@ -3,6 +3,7 @@ import { startWhatsApp, getSocket } from './whatsapp/client'
 import { sendPoll } from './whatsapp/poll'
 import { logger } from './utils/logger'
 import type { ForzaMatch } from './api/types'
+import { parseGroupJids } from './utils/env'
 
 const GREMIO_ID = parseInt(process.env.FORZA_TEAM_ID ?? '17474', 10)
 
@@ -46,8 +47,8 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const groupJid = process.env.WA_GROUP_JID?.trim()
-  if (!groupJid) {
+  const groupJids = parseGroupJids(process.env.WA_GROUP_JID)
+  if (groupJids.length === 0) {
     logger.error('WA_GROUP_JID is not set in .env')
     process.exit(1)
   }
@@ -60,7 +61,9 @@ async function main(): Promise<void> {
   await startWhatsApp()
   const sock = await getSocket()
 
-  await sendPoll(sock, groupJid, match)
+  for (const jid of groupJids) {
+    await sendPoll(sock, jid, match)
+  }
 
   logger.info('Test poll sent. Exiting.')
   process.exit(0)
