@@ -32,7 +32,7 @@ const TEAM_EMOJIS: Record<string, string> = {
   'Ponte Preta':           '🏁',
   'Red Bull Bragantino':   '🇵🇱',
   'Remo':                  '🇫🇮',
-  'Santos':                '🇵🇱',
+  'Santos':                '🐳',
   'São Paulo':             '🇾🇪',
   'Sport Recife':          '🇦🇱',
   'Vasco da Gama':         '🏴‍☠️',
