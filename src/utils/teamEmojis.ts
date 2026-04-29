@@ -6,6 +6,7 @@ const TEAM_EMOJIS: Record<string, string> = {
   'Athletico Paranaense':  '🇦🇴',
   'Avaí':                  '🇫🇮',
   'Bahia':                 '🇷🇺',
+  'Botafogo':              '🔥',
   'Botafogo-SP':           '🇾🇪',
   'Ceará':                 '🏁',
   'Chapecoense':           '🇸🇦',
