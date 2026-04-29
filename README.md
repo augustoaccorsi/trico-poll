@@ -107,7 +107,7 @@ npm run test:probabilities
 |---|---|---|
 | `send-poll.yml` | Daily 5AM BRT + manual | Send poll for today's match (idempotent) |
 | `test-poll.yml` | Manual | Send a fake test poll (index 0/1/2) to test group |
-| `send-probabilities.yml` | Manual | Send Série A probabilities to production group |
+| `send-probabilities.yml` | Every Tuesday 5AM BRT + manual | Send Série A probabilities to production group |
 | `test-probabilities.yml` | Manual | Send Série A probabilities to test group |
 
 ### Required GitHub secrets
