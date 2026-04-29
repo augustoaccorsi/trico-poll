@@ -8,7 +8,6 @@ WhatsApp bot that sends Grêmio match prediction polls and Série A probability 
 - **World Cup polls** — sends prediction polls for each World Cup 2026 match day (Jun 11–Jul 19)
 - **Série A probabilities** — sends champion/Libertadores/Sul-Americana/relegation odds for Grêmio and Internacional (sourced from UFMG)
 - **Good morning message** — sends a daily "Bom dia mano @Tobias" mention to a dedicated group
-- **GitHub Pages UI** — trigger polls and probabilities manually from a browser or iOS Shortcuts
 
 ## How it works
 
@@ -131,18 +130,6 @@ To encode the session after scanning QR locally:
 tar -czf - auth_info_baileys/ | base64 | gh secret set WA_SESSION -R <owner>/<repo> --hostname github.com
 ```
 
-## GitHub Pages UI
-
-Hosted at `https://<owner>.github.io/trico-poll/` — trigger workflows from any browser or iOS Shortcuts.
-
-| Route | Action |
-|---|---|
-| `/` | Landing page with links |
-| `/today/` | Send poll for today's match (uses current BRT date) |
-| `/test/` | Send a test poll (index 0, 1, or 2) |
-
-The UI calls the GitHub Actions `workflow_dispatch` API using a fine-grained PAT stored in `localStorage`. The PAT needs **Actions: read/write** scope on the repository.
-
 ## Environment variables
 
 | Variable | Required | Description |
@@ -188,10 +175,6 @@ src/
     ├── teamEmojis.ts         # Brazilian club → flag/emoji map
     ├── countryEmojis.ts      # Country → flag emoji map
     └── countryNames.ts       # Country name English → Portuguese map
-docs/
-├── index.html                # GitHub Pages landing page
-├── today/index.html          # Trigger today's poll
-└── test/index.html           # Trigger test poll
 .github/workflows/
 ├── send-poll.yml
 ├── test-poll.yml
