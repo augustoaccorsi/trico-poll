@@ -5,9 +5,10 @@ WhatsApp bot that sends Grêmio match prediction polls and Série A probability 
 ## Features
 
 - **Automated polls** — sends a prediction poll at 5AM BRT on each Grêmio game day
+- **World Cup polls** — sends prediction polls for each World Cup 2026 match day (Jun 11–Jul 19)
 - **Série A probabilities** — sends champion/Libertadores/Sul-Americana/relegation odds for Grêmio and Internacional (sourced from UFMG)
+- **Good morning message** — sends a daily "Bom dia mano @Tobias" mention to a dedicated group
 - **GitHub Pages UI** — trigger polls and probabilities manually from a browser or iOS Shortcuts
-- **Idempotency** — the daily poll workflow skips if a poll was already sent today
 
 ## How it works
 
@@ -84,6 +85,7 @@ The bot keeps running and fires polls automatically. On subsequent starts the QR
 | `npm run test:poll` | Send a fake test poll immediately |
 | `npm run send-wc-today` | Send WC poll for today's matches (one-shot) |
 | `npm run test:wc-poll` | Send WC poll for today (pass date: `npm run test:wc-poll -- 2026-06-11`) |
+| `npm run send-hello` | Send "Bom dia mano @Tobias" mention (one-shot) |
 | `npm run test:probabilities` | Send Série A probabilities to `WA_TEST_GROUP_JID` |
 
 ## Testing
@@ -111,6 +113,7 @@ npm run test:probabilities
 | `send-probabilities.yml` | Every Tuesday 5AM BRT + manual | Send Série A probabilities to production group |
 | `test-probabilities.yml` | Manual | Send Série A probabilities to test group |
 | `send-wc-poll.yml` | Daily + manual (Jun 11–Jul 19 2026) | Send WC polls for today's matches |
+| `send-hello.yml` | Daily 3AM BRT + manual | Send "Bom dia mano @Tobias" to dedicated group |
 
 ### Required GitHub secrets
 
@@ -119,6 +122,8 @@ npm run test:probabilities
 | `WA_SESSION` | WhatsApp session (base64-encoded gzipped tar of `auth_info_baileys/`) |
 | `WA_GROUP_JID` | Production WhatsApp group JID |
 | `WA_TEST_GROUP_JID` | Test WhatsApp group JID |
+| `WA_HELLO_GROUP_JID` | WhatsApp group JID for the daily good morning message |
+| `WA_HELLO_ID` | Tobias's WhatsApp JID for @mention (e.g. `5511999999999@s.whatsapp.net`) |
 | `GH_PAT` | Fine-grained PAT with Actions read/write (to save updated session) |
 
 To encode the session after scanning QR locally:
@@ -144,6 +149,8 @@ The UI calls the GitHub Actions `workflow_dispatch` API using a fine-grained PAT
 |---|---|---|
 | `WA_GROUP_JID` | Yes | WhatsApp production group JID |
 | `WA_TEST_GROUP_JID` | No | WhatsApp test group JID (used by test scripts) |
+| `WA_HELLO_GROUP_JID` | No | WhatsApp group JID for the daily good morning message |
+| `WA_HELLO_ID` | No | Tobias's WhatsApp JID for @mention (`5511...@s.whatsapp.net`) |
 | `FORZA_TEAM_ID` | No | Grêmio's Forza Football team ID (default: `17474`) |
 | `TZ_BRASILIA` | No | Timezone for scheduling (default: `America/Sao_Paulo`) |
 | `POLL_CRON_HOUR` | No | Hour to send polls in BRT (default: `5`) |
@@ -156,11 +163,14 @@ The UI calls the GitHub Actions `workflow_dispatch` API using a fine-grained PAT
 src/
 ├── index.ts                  # Entrypoint (continuous bot)
 ├── send-today.ts             # One-shot: send poll for today
+├── send-wc-today.ts          # One-shot: send WC polls for today
 ├── send-probabilities.ts     # One-shot: send Série A probabilities
+├── send-hello.ts             # One-shot: send good morning mention to Tobias
 ├── test-poll.ts              # One-shot: send fake test poll
 ├── test-probabilities.ts     # One-shot: send probabilities to test group
 ├── api/
 │   ├── forza.ts              # Fetch fixtures from Forza Football API
+│   ├── wc.ts                 # Fetch World Cup fixtures from Forza Football API
 │   ├── ufmg.ts               # Scrape Série A probabilities from UFMG
 │   └── types.ts              # TypeScript interfaces
 ├── scheduler/
@@ -168,11 +178,16 @@ src/
 │   └── jobStore.ts           # In-memory cron job registry
 ├── whatsapp/
 │   ├── client.ts             # WhatsApp connection + QR + reconnect
-│   ├── poll.ts               # Send poll to group
-│   └── message.ts            # Send text message to group
+│   ├── poll.ts               # Send Série A poll to group
+│   ├── wcPoll.ts             # Send WC poll to group
+│   └── message.ts            # Send text/mention messages to group
 └── utils/
     ├── logger.ts             # Pino logger
-    └── formatPoll.ts         # Build poll question and options
+    ├── formatPoll.ts         # Build Série A poll question and options
+    ├── formatWcPoll.ts       # Build WC poll question and options
+    ├── teamEmojis.ts         # Brazilian club → flag/emoji map
+    ├── countryEmojis.ts      # Country → flag emoji map
+    └── countryNames.ts       # Country name English → Portuguese map
 docs/
 ├── index.html                # GitHub Pages landing page
 ├── today/index.html          # Trigger today's poll
@@ -181,7 +196,10 @@ docs/
 ├── send-poll.yml
 ├── test-poll.yml
 ├── send-probabilities.yml
-└── test-probabilities.yml
+├── test-probabilities.yml
+├── send-wc-poll.yml
+├── test-wc-poll.yml
+└── send-hello.yml
 ```
 
 ## Notes
