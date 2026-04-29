@@ -1,0 +1,48 @@
+name: Send Good Morning
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore WhatsApp session
+        run: |
+          if [ -z "${{ secrets.WA_SESSION }}" ]; then
+            echo "ERROR: WA_SESSION secret is not set."
+            exit 1
+          fi
+          mkdir -p auth_info_baileys
+          echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
+
+      - name: Send good morning message
+        env:
+          WA_HELLO_GROUP_JID: ${{ secrets.WA_HELLO_GROUP_JID }}
+          WA_HELLO_ID: ${{ secrets.WA_HELLO_ID }}
+          LOG_LEVEL: 'info'
+        run: npm run send-hello
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_HOST: github.com
+        run: |
+          ls auth_info_baileys/pre-key-* 2>/dev/null | sort -V | head -n -30 | xargs rm -f 2>/dev/null || true
+          rm -f auth_info_baileys/session-* 2>/dev/null || true
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}
