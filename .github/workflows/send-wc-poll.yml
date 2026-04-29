@@ -1,0 +1,54 @@
+name: Send World Cup Poll
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 3AM BRT (UTC-3) — runs daily Jun 11–Jul 19 2026
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to check for matches (YYYY-MM-DD). Defaults to today in BRT.'
+        required: false
+        default: ''
+
+jobs:
+  send-wc-poll:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore WhatsApp session
+        run: |
+          if [ -z "${{ secrets.WA_SESSION }}" ]; then
+            echo "ERROR: WA_SESSION secret is not set."
+            exit 1
+          fi
+          mkdir -p auth_info_baileys
+          echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
+
+      - name: Send WC poll if match today
+        env:
+          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
+          TZ_BRASILIA: 'America/Sao_Paulo'
+          LOG_LEVEL: 'info'
+          POLL_DATE: ${{ github.event.inputs.date }}
+        run: npm run send-wc-today
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_HOST: github.com
+        run: |
+          ls auth_info_baileys/pre-key-* 2>/dev/null | sort -V | head -n -30 | xargs rm -f 2>/dev/null || true
+          rm -f auth_info_baileys/session-* 2>/dev/null || true
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}

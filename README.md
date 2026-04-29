@@ -82,7 +82,8 @@ The bot keeps running and fires polls automatically. On subsequent starts the QR
 | `npm start` | Run compiled output |
 | `npm run send-today` | Send poll for today's match (one-shot) |
 | `npm run test:poll` | Send a fake test poll immediately |
-| `npm run send-probabilities` | Send Série A probabilities to `WA_GROUP_JID` |
+| `npm run send-wc-today` | Send WC poll for today's matches (one-shot) |
+| `npm run test:wc-poll` | Send WC poll for today (pass date: `npm run test:wc-poll -- 2026-06-11`) |
 | `npm run test:probabilities` | Send Série A probabilities to `WA_TEST_GROUP_JID` |
 
 ## Testing
@@ -109,6 +110,7 @@ npm run test:probabilities
 | `test-poll.yml` | Manual | Send a fake test poll (index 0/1/2) to test group |
 | `send-probabilities.yml` | Every Tuesday 5AM BRT + manual | Send Série A probabilities to production group |
 | `test-probabilities.yml` | Manual | Send Série A probabilities to test group |
+| `send-wc-poll.yml` | Daily + manual (Jun 11–Jul 19 2026) | Send WC polls for today's matches |
 
 ### Required GitHub secrets
 
