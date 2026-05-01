@@ -63,7 +63,11 @@ async function main(): Promise<void> {
     logger.info({ groups: gremioJids.length }, 'Sending fake Grêmio polls')
     for (const match of FAKE_GREMIO_MATCHES) {
       for (const jid of gremioJids) {
-        await sendPoll(sock, jid, match)
+        try {
+          await sendPoll(sock, jid, match)
+        } catch (err) {
+          logger.error({ err, jid, matchId: match.id }, 'Failed to send poll to group')
+        }
       }
     }
   }
@@ -72,7 +76,11 @@ async function main(): Promise<void> {
     logger.info({ groups: interJids.length }, 'Sending fake Internacional polls')
     for (const match of FAKE_INTER_MATCHES) {
       for (const jid of interJids) {
-        await sendPoll(sock, jid, match)
+        try {
+          await sendPoll(sock, jid, match)
+        } catch (err) {
+          logger.error({ err, jid, matchId: match.id }, 'Failed to send poll to group')
+        }
       }
     }
   }

@@ -91,12 +91,12 @@ export async function scheduleAllPolls(): Promise<void> {
     const task = cron.schedule(
       cronExpr,
       async () => {
-        try {
-          for (const jid of jidsSnapshot) {
+        for (const jid of jidsSnapshot) {
+          try {
             await sendPoll(sock, jid, match)
+          } catch (err) {
+            logger.error({ err, matchId: match.id, jid }, 'Failed to send poll to group')
           }
-        } catch (err) {
-          logger.error({ err, matchId: match.id }, 'Failed to send poll')
         }
       },
       { timezone: TZ }

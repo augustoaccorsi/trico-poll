@@ -75,7 +75,11 @@ async function main(): Promise<void> {
 
   for (const { match, jids } of pollMap.values()) {
     for (const jid of jids) {
-      await sendPoll(sock, jid, match)
+      try {
+        await sendPoll(sock, jid, match)
+      } catch (err) {
+        logger.error({ err, jid, matchId: match.id }, 'Failed to send poll to group')
+      }
     }
   }
 

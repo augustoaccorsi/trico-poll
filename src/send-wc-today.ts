@@ -47,7 +47,11 @@ async function main(): Promise<void> {
 
   for (const match of todayMatches) {
     for (const jid of groupJids) {
-      await sendWcPoll(sock, jid, match)
+      try {
+        await sendWcPoll(sock, jid, match)
+      } catch (err) {
+        logger.error({ err, jid, matchId: match.id }, 'Failed to send WC poll to group')
+      }
     }
   }
 

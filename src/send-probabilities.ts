@@ -45,7 +45,11 @@ async function main(): Promise<void> {
   const sock = await getSocket()
 
   for (const jid of groupJids) {
-    await sendTextMessage(sock, jid, message)
+    try {
+      await sendTextMessage(sock, jid, message)
+    } catch (err) {
+      logger.error({ err, jid }, 'Failed to send probabilities to group')
+    }
   }
 
   logger.info('Probabilities sent. Exiting.')
