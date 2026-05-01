@@ -30,24 +30,24 @@ async function main(): Promise<void> {
   const today = getTargetDate()
   logger.info({ date: today }, 'Checking for Grêmio and Internacional matches...')
 
-  const grémioJids = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
+  const gremioJids = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
   const interJids = parseGroupJids(process.env.WA_INTER_GROUP_JID)
 
-  if (grémioJids.length === 0 && interJids.length === 0) {
+  if (gremioJids.length === 0 && interJids.length === 0) {
     logger.error('WA_GREMIO_GROUP_JID and WA_INTER_GROUP_JID are both unset')
     process.exit(1)
   }
 
-  const grémioTeamId = process.env.FORZA_GREMIO_TEAM_ID ?? '17474'
+  const gremioTeamId = process.env.FORZA_GREMIO_TEAM_ID ?? '17474'
   const interTeamId = process.env.FORZA_INTER_TEAM_ID ?? '38885'
 
   // Build match → group set map (union for shared matches like Gre x Inter)
   const pollMap = new Map<number, { match: ForzaMatch; jids: Set<string> }>()
 
-  if (grémioJids.length > 0) {
-    const matches = filterToDate(await fetchMatchesForTeam(grémioTeamId), today)
+  if (gremioJids.length > 0) {
+    const matches = filterToDate(await fetchMatchesForTeam(gremioTeamId), today)
     for (const match of matches) {
-      pollMap.set(match.id, { match, jids: new Set(grémioJids) })
+      pollMap.set(match.id, { match, jids: new Set(gremioJids) })
     }
   }
 

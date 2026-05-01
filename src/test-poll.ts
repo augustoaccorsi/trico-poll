@@ -48,10 +48,10 @@ const FAKE_INTER_MATCHES: ForzaMatch[] = [
 ]
 
 async function main(): Promise<void> {
-  const grémioJids = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
+  const gremioJids = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
   const interJids = parseGroupJids(process.env.WA_INTER_GROUP_JID)
 
-  if (grémioJids.length === 0 && interJids.length === 0) {
+  if (gremioJids.length === 0 && interJids.length === 0) {
     logger.error('WA_GREMIO_GROUP_JID and WA_INTER_GROUP_JID are both unset in .env')
     process.exit(1)
   }
@@ -59,10 +59,10 @@ async function main(): Promise<void> {
   await startWhatsApp()
   const sock = await getSocket()
 
-  if (grémioJids.length > 0) {
-    logger.info({ groups: grémioJids.length }, 'Sending fake Grêmio polls')
+  if (gremioJids.length > 0) {
+    logger.info({ groups: gremioJids.length }, 'Sending fake Grêmio polls')
     for (const match of FAKE_GREMIO_MATCHES) {
-      for (const jid of grémioJids) {
+      for (const jid of gremioJids) {
         await sendPoll(sock, jid, match)
       }
     }

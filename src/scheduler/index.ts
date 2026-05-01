@@ -28,9 +28,9 @@ type MatchPoll = { match: ForzaMatch; groupJids: Set<string> }
 async function buildPollMap(): Promise<Map<number, MatchPoll>> {
   const pollMap = new Map<number, MatchPoll>()
 
-  const grémioMatches = await fetchMatchesForTeam(GREMIO_TEAM_ID)
-  logger.info({ count: grémioMatches.length }, 'Fetched upcoming Grêmio matches')
-  for (const match of grémioMatches) {
+  const gremioMatches = await fetchMatchesForTeam(GREMIO_TEAM_ID)
+  logger.info({ count: gremioMatches.length }, 'Fetched upcoming Grêmio matches')
+  for (const match of gremioMatches) {
     pollMap.set(match.id, { match, groupJids: new Set(GREMIO_JIDS) })
   }
 
