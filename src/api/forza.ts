@@ -2,11 +2,9 @@ import { decode as msgpackDecode } from '@msgpack/msgpack'
 import { logger } from '../utils/logger'
 import type { ForzaMatch, ForzaResponse } from './types'
 
-const TEAM_ID = process.env.FORZA_TEAM_ID ?? '17474'
-const API_URL = `https://api.forzafootball.net/v1/teams/${TEAM_ID}/matches`
-
-export async function fetchMatches(): Promise<ForzaMatch[]> {
-  const res = await fetch(API_URL)
+export async function fetchMatchesForTeam(teamId: string): Promise<ForzaMatch[]> {
+  const url = `https://api.forzafootball.net/v1/teams/${teamId}/matches`
+  const res = await fetch(url)
 
   if (!res.ok) {
     throw new Error(`Forza API error: ${res.status} ${res.statusText}`)
@@ -18,11 +16,15 @@ export async function fetchMatches(): Promise<ForzaMatch[]> {
   if (contentType.includes('msgpack')) {
     const buffer = await res.arrayBuffer()
     data = msgpackDecode(new Uint8Array(buffer)) as ForzaResponse
-    logger.debug('Forza API: decoded msgpack response')
+    logger.debug({ teamId }, 'Forza API: decoded msgpack response')
   } else {
     data = (await res.json()) as ForzaResponse
-    logger.debug('Forza API: decoded JSON response')
+    logger.debug({ teamId }, 'Forza API: decoded JSON response')
   }
 
   return (data.matches ?? []).filter(m => m.status === 'before')
+}
+
+export async function fetchMatches(): Promise<ForzaMatch[]> {
+  return fetchMatchesForTeam(process.env.FORZA_GREMIO_TEAM_ID ?? '17474')
 }

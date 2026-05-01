@@ -1,9 +1,10 @@
 import 'dotenv/config'
-import { fetchMatches } from './api/forza'
+import { fetchMatchesForTeam } from './api/forza'
 import { startWhatsApp, getSocket } from './whatsapp/client'
 import { sendPoll } from './whatsapp/poll'
 import { logger } from './utils/logger'
 import { parseGroupJids } from './utils/env'
+import type { ForzaMatch } from './api/types'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
@@ -19,34 +20,61 @@ function getTargetDate(): string {
   return today
 }
 
+function filterToDate(matches: ForzaMatch[], date: string): ForzaMatch[] {
+  return matches.filter(m => {
+    return new Date(m.kickoff_at).toLocaleDateString('en-CA', { timeZone: TZ }) === date
+  })
+}
+
 async function main(): Promise<void> {
   const today = getTargetDate()
-  logger.info({ date: today }, 'Checking for Grêmio matches...')
+  logger.info({ date: today }, 'Checking for Grêmio and Internacional matches...')
 
-  const matches = await fetchMatches()
-  const todayMatches = matches.filter(match => {
-    const matchDate = new Date(match.kickoff_at).toLocaleDateString('en-CA', { timeZone: TZ })
-    return matchDate === today
-  })
+  const grémioJids = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
+  const interJids = parseGroupJids(process.env.WA_INTER_GROUP_JID)
 
-  if (todayMatches.length === 0) {
+  if (grémioJids.length === 0 && interJids.length === 0) {
+    logger.error('WA_GREMIO_GROUP_JID and WA_INTER_GROUP_JID are both unset')
+    process.exit(1)
+  }
+
+  const grémioTeamId = process.env.FORZA_GREMIO_TEAM_ID ?? '17474'
+  const interTeamId = process.env.FORZA_INTER_TEAM_ID ?? '38885'
+
+  // Build match → group set map (union for shared matches like Gre x Inter)
+  const pollMap = new Map<number, { match: ForzaMatch; jids: Set<string> }>()
+
+  if (grémioJids.length > 0) {
+    const matches = filterToDate(await fetchMatchesForTeam(grémioTeamId), today)
+    for (const match of matches) {
+      pollMap.set(match.id, { match, jids: new Set(grémioJids) })
+    }
+  }
+
+  if (interJids.length > 0) {
+    const matches = filterToDate(await fetchMatchesForTeam(interTeamId), today)
+    for (const match of matches) {
+      const existing = pollMap.get(match.id)
+      if (existing) {
+        for (const jid of interJids) existing.jids.add(jid)
+      } else {
+        pollMap.set(match.id, { match, jids: new Set(interJids) })
+      }
+    }
+  }
+
+  if (pollMap.size === 0) {
     logger.info({ today }, 'No matches today. Exiting.')
     process.exit(0)
   }
 
-  logger.info({ count: todayMatches.length, today }, 'Match(es) found today — sending poll(s)')
-
-  const groupJids = parseGroupJids(process.env.WA_GROUP_JID)
-  if (groupJids.length === 0) {
-    logger.error('WA_GROUP_JID is not set')
-    process.exit(1)
-  }
+  logger.info({ count: pollMap.size, today }, 'Match(es) found today — sending poll(s)')
 
   await startWhatsApp()
   const sock = await getSocket()
 
-  for (const match of todayMatches) {
-    for (const jid of groupJids) {
+  for (const { match, jids } of pollMap.values()) {
+    for (const jid of jids) {
       await sendPoll(sock, jid, match)
     }
   }

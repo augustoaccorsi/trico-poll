@@ -38,7 +38,7 @@ async function main(): Promise<void> {
   const message = [
     ...teamSection('Grêmio', '🇪🇪', gremio),
     '',
-    ...teamSection('Internacional', '🇦🇹', inter),
+    ...teamSection('Internacional', '🇮🇩', inter),
   ].join('\n')
 
   await startWhatsApp()

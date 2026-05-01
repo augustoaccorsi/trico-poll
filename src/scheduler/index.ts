@@ -1,56 +1,77 @@
 import cron from 'node-cron'
-import { fetchMatches } from '../api/forza'
+import { fetchMatchesForTeam } from '../api/forza'
 import { sendPoll } from '../whatsapp/poll'
 import { getSocket } from '../whatsapp/client'
 import { addJob, clearAll, size } from './jobStore'
 import { logger } from '../utils/logger'
 import { parseGroupJids } from '../utils/env'
+import type { ForzaMatch } from '../api/types'
 
-const GROUP_JIDS = parseGroupJids(process.env.WA_GROUP_JID)
+const GREMIO_JIDS = parseGroupJids(process.env.WA_GREMIO_GROUP_JID)
+const INTER_JIDS = parseGroupJids(process.env.WA_INTER_GROUP_JID)
+const GREMIO_TEAM_ID = process.env.FORZA_GREMIO_TEAM_ID ?? '17474'
+const INTER_TEAM_ID = process.env.FORZA_INTER_TEAM_ID ?? '38885'
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 const POLL_HOUR = parseInt(process.env.POLL_CRON_HOUR ?? '5', 10)
 
-let resolvedJids: string[] | null = null
-
-async function resolveGroupJids(): Promise<string[]> {
-  if (resolvedJids) return resolvedJids
-
+async function logAvailableGroups(): Promise<void> {
   const sock = await getSocket()
   const groups = await sock.groupFetchAllParticipating()
-
-  // Always log all groups so the user can find/verify the right JID
   logger.info('Available WhatsApp groups:')
   for (const [jid, meta] of Object.entries(groups)) {
     logger.info({ jid, name: meta.subject }, '  group')
   }
+}
 
-  if (GROUP_JIDS.length === 0) {
-    throw new Error('WA_GROUP_JID is required. Set it in .env using the JID logged above.')
+type MatchPoll = { match: ForzaMatch; groupJids: Set<string> }
+
+async function buildPollMap(): Promise<Map<number, MatchPoll>> {
+  const pollMap = new Map<number, MatchPoll>()
+
+  const grémioMatches = await fetchMatchesForTeam(GREMIO_TEAM_ID)
+  logger.info({ count: grémioMatches.length }, 'Fetched upcoming Grêmio matches')
+  for (const match of grémioMatches) {
+    pollMap.set(match.id, { match, groupJids: new Set(GREMIO_JIDS) })
   }
 
-  resolvedJids = GROUP_JIDS
-  logger.info({ groupJids: resolvedJids }, 'Resolved target group(s)')
-  return resolvedJids
+  const interMatches = await fetchMatchesForTeam(INTER_TEAM_ID)
+  logger.info({ count: interMatches.length }, 'Fetched upcoming Internacional matches')
+  for (const match of interMatches) {
+    const existing = pollMap.get(match.id)
+    if (existing) {
+      for (const jid of INTER_JIDS) existing.groupJids.add(jid)
+    } else {
+      pollMap.set(match.id, { match, groupJids: new Set(INTER_JIDS) })
+    }
+  }
+
+  return pollMap
 }
 
 export async function scheduleAllPolls(): Promise<void> {
-  const sock = await getSocket()
-  const jids = await resolveGroupJids()
-  const matches = await fetchMatches()
+  if (GREMIO_JIDS.length === 0 && INTER_JIDS.length === 0) {
+    throw new Error(
+      'WA_GREMIO_GROUP_JID and WA_INTER_GROUP_JID are both unset. Set at least one in .env.'
+    )
+  }
 
-  logger.info({ count: matches.length }, 'Fetched upcoming matches')
+  await logAvailableGroups()
+
+  const sock = await getSocket()
+  const pollMap = await buildPollMap()
+
+  logger.info({ uniqueMatches: pollMap.size }, 'Total unique matches to schedule')
   clearAll()
 
   let scheduled = 0
 
-  for (const match of matches) {
-    const kickoffDate = new Date(match.kickoff_at)
+  for (const { match, groupJids } of pollMap.values()) {
+    if (groupJids.size === 0) continue
 
-    // Get the game date in Brasilia local time
+    const kickoffDate = new Date(match.kickoff_at)
     const localDateStr = kickoffDate.toLocaleDateString('en-CA', { timeZone: TZ })
     const [, month, day] = localDateStr.split('-').map(Number)
 
-    // Skip if the 5AM poll time on game day has already passed
     const pollTimeUTC = Date.UTC(
       kickoffDate.getUTCFullYear(),
       month - 1,
@@ -65,12 +86,13 @@ export async function scheduleAllPolls(): Promise<void> {
     }
 
     const cronExpr = `0 ${POLL_HOUR} ${day} ${month} *`
+    const jidsSnapshot = [...groupJids]
 
     const task = cron.schedule(
       cronExpr,
       async () => {
         try {
-          for (const jid of jids) {
+          for (const jid of jidsSnapshot) {
             await sendPoll(sock, jid, match)
           }
         } catch (err) {
@@ -90,6 +112,7 @@ export async function scheduleAllPolls(): Promise<void> {
         home: match.home_team.name,
         away: match.away_team.name,
         competition: match.tournament.name,
+        groups: jidsSnapshot.length,
       },
       'Scheduled poll'
     )

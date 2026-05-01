@@ -21,7 +21,7 @@ const TEAM_EMOJIS: Record<string, string> = {
   'Fortaleza':             '🇷🇺',
   'Goiás':                 '🇳🇬',
   'Grêmio':                '🇪🇪',
-  'Internacional':         '🇦🇹',
+  'Internacional':         '🇮🇩',
   'Juventude':             '🇳🇬',
   'Londrina':              '🇫🇮',
   'Mirassol':              '🇯🇲',

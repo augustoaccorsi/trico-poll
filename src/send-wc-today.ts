@@ -36,9 +36,9 @@ async function main(): Promise<void> {
 
   logger.info({ count: todayMatches.length, today }, 'WC match(es) found today — sending poll(s)')
 
-  const groupJids = parseGroupJids(process.env.WA_GROUP_JID)
+  const groupJids = parseGroupJids(process.env.WA_WC_GROUP_JID)
   if (groupJids.length === 0) {
-    logger.error('WA_GROUP_JID is not set')
+    logger.error('WA_WC_GROUP_JID is not set')
     process.exit(1)
   }
 
