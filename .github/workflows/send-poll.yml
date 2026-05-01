@@ -1,4 +1,4 @@
-name: Send Grêmio Poll
+name: Send Polls
 
 on:
   schedule:
@@ -38,8 +38,10 @@ jobs:
 
       - name: Send poll if match today
         env:
-          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
-          FORZA_TEAM_ID: '17474'
+          WA_GREMIO_GROUP_JID: ${{ secrets.WA_GREMIO_GROUP_JID }}
+          WA_INTER_GROUP_JID: ${{ secrets.WA_INTER_GROUP_JID }}
+          FORZA_GREMIO_TEAM_ID: ${{ secrets.FORZA_GREMIO_TEAM_ID }}
+          FORZA_INTER_TEAM_ID: ${{ secrets.FORZA_INTER_TEAM_ID }}
           TZ_BRASILIA: 'America/Sao_Paulo'
           LOG_LEVEL: 'info'
           POLL_DATE: ${{ github.event.inputs.date }}

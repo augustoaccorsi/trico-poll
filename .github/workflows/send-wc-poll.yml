@@ -36,7 +36,7 @@ jobs:
 
       - name: Send WC poll if match today
         env:
-          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
+          WA_WC_GROUP_JID: ${{ secrets.WA_WC_GROUP_JID }}
           TZ_BRASILIA: 'America/Sao_Paulo'
           LOG_LEVEL: 'info'
           POLL_DATE: ${{ github.event.inputs.date }}

@@ -34,7 +34,7 @@ jobs:
 
       - name: Send test WC poll
         env:
-          WA_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
+          WA_WC_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
           TZ_BRASILIA: 'America/Sao_Paulo'
           LOG_LEVEL: 'info'
           POLL_DATE: ${{ github.event.inputs.date }}

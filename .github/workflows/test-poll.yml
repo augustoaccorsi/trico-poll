@@ -2,11 +2,6 @@ name: Test Poll
 
 on:
   workflow_dispatch:
-    inputs:
-      index:
-        description: 'Fake match index (0 = Grêmio x Adversário, 1 = Adversário x Grêmio, 2 = Grêmio x Athletico)'
-        required: false
-        default: '0'
 
 jobs:
   test-poll:
@@ -36,9 +31,10 @@ jobs:
 
       - name: Send test poll
         env:
-          WA_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
+          WA_GREMIO_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
+          WA_INTER_GROUP_JID: ${{ secrets.WA_TEST_GROUP_JID }}
           LOG_LEVEL: 'info'
-        run: npm run test:poll -- ${{ inputs.index }}
+        run: npm run test:poll
 
       - name: Save updated session
         if: always()

@@ -39,7 +39,7 @@ jobs:
 
       - name: Send probabilities
         env:
-          WA_GROUP_JID: ${{ secrets.WA_GROUP_JID }}
+          WA_PROBS_GROUP_JID: ${{ secrets.WA_PROBS_GROUP_JID }}
           LOG_LEVEL: 'info'
           UFMG_HTML_DIR: /tmp/ufmg
         run: npm run send-probabilities
