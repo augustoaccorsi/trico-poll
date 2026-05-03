@@ -1,0 +1,54 @@
+name: Send Probabilities (First Group)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-probs-first:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore WhatsApp session
+        run: |
+          if [ -z "${{ secrets.WA_SESSION }}" ]; then
+            echo "ERROR: WA_SESSION secret is not set."
+            exit 1
+          fi
+          mkdir -p auth_info_baileys
+          echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
+
+      - name: Pre-fetch UFMG HTML
+        run: |
+          mkdir -p /tmp/ufmg
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/champion.html "https://www.mat.ufmg.br/futebol/campeao_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/libertadores.html "https://www.mat.ufmg.br/futebol/classificacao-para-libertadores_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/sulamericana.html "https://www.mat.ufmg.br/futebol/classificacao-para-sulamericana_seriea/"
+          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/relegation.html "https://www.mat.ufmg.br/futebol/rebaixamento_seriea/"
+
+      - name: Send probabilities to first group
+        env:
+          WA_PROBS_GROUP_JID: ${{ secrets.WA_PROBS_GROUP_JID }}
+          LOG_LEVEL: 'info'
+          UFMG_HTML_DIR: /tmp/ufmg
+        run: npm run send-probs-first
+
+      - name: Save updated session
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_HOST: github.com
+        run: |
+          ls auth_info_baileys/pre-key-* 2>/dev/null | sort -V | head -n -30 | xargs rm -f 2>/dev/null || true
+          rm -f auth_info_baileys/session-* 2>/dev/null || true
+          NEW_SESSION=$(tar -czf - -C auth_info_baileys . | base64 -w 0)
+          echo "$NEW_SESSION" | gh secret set WA_SESSION -R ${{ github.repository }}

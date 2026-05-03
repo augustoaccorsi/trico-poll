@@ -14,7 +14,8 @@
     "send-probabilities": "tsx src/send-probabilities.ts",
     "send-wc-today": "tsx src/send-wc-today.ts",
     "test:wc-poll": "tsx src/send-wc-today.ts",
-    "send-hello": "tsx src/send-hello.ts"
+    "send-hello": "tsx src/send-hello.ts",
+    "send-probs-first": "tsx src/send-probs-first.ts"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",
