@@ -28,6 +28,7 @@ const TEAM_EMOJIS: Record<string, string> = {
   'Náutico':               '🇦🇹',
   'Novorizontino':         '🇧🇪',
   'Operário-PR':           '🏁',
+  'Palestino':             '💣',
   'Palmeiras':             '🇳🇬',
   'Ponte Preta':           '🏁',
   'Red Bull Bragantino':   '🇵🇱',
