@@ -2,11 +2,18 @@ name: Send World Cup Poll
 
 on:
   schedule:
-    - cron: '0 6 * * *' # 3AM BRT (UTC-3) — runs daily Jun 11–Jul 19 2026
+    # Morning run: 3:07 AM BRT (06:07 UTC) — sends polls for games at 06:00+ BRT
+    - cron: '7 6 * * *'
+    # Evening run: 10:07 PM BRT (01:07 UTC next day) — sends polls for early-morning games (before 06:00 BRT)
+    - cron: '7 1 * * *'
   workflow_dispatch:
     inputs:
       date:
         description: 'Date to check for matches (YYYY-MM-DD). Defaults to today in BRT.'
+        required: false
+        default: ''
+      mode:
+        description: 'Run mode: "morning" (games 06:00+ BRT) or "evening" (next-day games before 06:00 BRT). Defaults to auto-detect.'
         required: false
         default: ''
 
@@ -40,6 +47,7 @@ jobs:
           TZ_BRASILIA: 'America/Sao_Paulo'
           LOG_LEVEL: 'info'
           POLL_DATE: ${{ github.event.inputs.date }}
+          POLL_MODE: ${{ github.event.inputs.mode }}
         run: npm run send-wc-today
 
       - name: Save updated session
