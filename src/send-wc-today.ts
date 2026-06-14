@@ -7,34 +7,60 @@ import { parseGroupJids } from './utils/env'
 
 const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 
-function getTargetDate(): string {
+// Games kicking off before this hour (BRT) are "early morning" —
+// they belong to the previous night's poll cycle, not the morning run.
+const EARLY_MORNING_CUTOFF = 3
+
+function getDatePair(): { today: string; tomorrow: string } {
   const arg = process.argv[2]?.trim()
   const override = arg || process.env.POLL_DATE?.trim()
   if (override) {
-    logger.info(`Using provided date: ${override}`)
-    return override
+    const d = new Date(override + 'T12:00:00Z')
+    const tomorrow = new Date(d)
+    tomorrow.setUTCDate(d.getUTCDate() + 1)
+    return {
+      today: override,
+      tomorrow: tomorrow.toLocaleDateString('en-CA', { timeZone: TZ }),
+    }
   }
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ })
-  logger.info(`No date provided, using today: ${today}`)
-  return today
+  const now = new Date()
+  const today = now.toLocaleDateString('en-CA', { timeZone: TZ })
+  const nextDay = new Date(now)
+  nextDay.setUTCDate(now.getUTCDate() + 1)
+  const tomorrow = nextDay.toLocaleDateString('en-CA', { timeZone: TZ })
+  return { today, tomorrow }
+}
+
+function kickoffHour(kickoff_at: string): number {
+  return parseInt(
+    new Date(kickoff_at).toLocaleTimeString('en-GB', { timeZone: TZ, hour: '2-digit' }),
+    10
+  )
 }
 
 async function main(): Promise<void> {
-  const today = getTargetDate()
-  logger.info({ date: today }, 'Checking for World Cup matches...')
+  const { today, tomorrow } = getDatePair()
+  logger.info({ today, tomorrow }, 'Checking for World Cup matches...')
 
   const matches = await fetchWcMatches()
-  const todayMatches = matches.filter(match => {
+
+  // Today's games that aren't early-morning (those already ran or are too close)
+  // + Tomorrow's early-morning games (00:00–02:xx BRT) sent in advance
+  const relevantMatches = matches.filter(match => {
     const matchDate = new Date(match.kickoff_at).toLocaleDateString('en-CA', { timeZone: TZ })
-    return matchDate === today
+    const hour = kickoffHour(match.kickoff_at)
+    return (
+      (matchDate === today && hour >= EARLY_MORNING_CUTOFF) ||
+      (matchDate === tomorrow && hour < EARLY_MORNING_CUTOFF)
+    )
   })
 
-  if (todayMatches.length === 0) {
-    logger.info({ today }, 'No WC matches today. Exiting.')
+  if (relevantMatches.length === 0) {
+    logger.info({ today, tomorrow }, 'No WC matches for this run. Exiting.')
     process.exit(0)
   }
 
-  logger.info({ count: todayMatches.length, today }, 'WC match(es) found today — sending poll(s)')
+  logger.info({ count: relevantMatches.length, today, tomorrow }, 'WC match(es) found — sending poll(s)')
 
   const groupJids = parseGroupJids(process.env.WA_WC_GROUP_JID)
   if (groupJids.length === 0) {
@@ -45,7 +71,7 @@ async function main(): Promise<void> {
   await startWhatsApp()
   const sock = await getSocket()
 
-  for (const match of todayMatches) {
+  for (const match of relevantMatches) {
     for (const jid of groupJids) {
       try {
         await sendWcPoll(sock, jid, match)
