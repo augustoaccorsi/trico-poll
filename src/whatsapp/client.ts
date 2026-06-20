@@ -3,6 +3,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   DisconnectReason,
   makeCacheableSignalKeyStore,
+  Browsers,
   type WASocket,
 } from '@whiskeysockets/baileys'
 import { Boom } from '@hapi/boom'
@@ -46,7 +47,7 @@ async function connect(retries: number): Promise<void> {
     },
     logger: logger.child({ module: 'baileys' }) as any,
     printQRInTerminal: false,
-    browser: ['trico-poll', 'Chrome', '120.0.0'],
+    browser: Browsers.ubuntu('Chrome'),
   })
 
   sock.ev.on('creds.update', saveCreds)
