@@ -13,18 +13,30 @@ import { logger } from '../utils/logger'
 const AUTH_FOLDER = 'auth_info_baileys'
 
 let sock: WASocket | null = null
-let resolveConnected!: (s: WASocket) => void
-const connectedPromise = new Promise<WASocket>(r => {
-  resolveConnected = r
-})
+let socketWaiters: Array<(s: WASocket) => void> = []
+let intentionalDisconnect = false
+
+function notifyConnected(s: WASocket): void {
+  sock = s
+  const waiters = socketWaiters.splice(0)
+  for (const resolve of waiters) resolve(s)
+}
 
 export async function startWhatsApp(): Promise<WASocket> {
+  intentionalDisconnect = false
   await connect(0)
-  return connectedPromise
+  return getSocket()
 }
 
 export function getSocket(): Promise<WASocket> {
-  return connectedPromise
+  if (sock) return Promise.resolve(sock)
+  return new Promise(r => socketWaiters.push(r))
+}
+
+export function disconnectWhatsApp(): void {
+  intentionalDisconnect = true
+  sock?.end(undefined)
+  sock = null
 }
 
 async function connect(retries: number): Promise<void> {
@@ -39,7 +51,7 @@ async function connect(retries: number): Promise<void> {
     logger.warn('Could not fetch latest Baileys version, using fallback')
   }
 
-  sock = makeWASocket({
+  const newSock = makeWASocket({
     version,
     auth: {
       creds: state.creds,
@@ -48,11 +60,12 @@ async function connect(retries: number): Promise<void> {
     logger: logger.child({ module: 'baileys' }) as any,
     printQRInTerminal: false,
     browser: Browsers.ubuntu('Chrome'),
+    getMessage: async () => undefined,
   })
 
-  sock.ev.on('creds.update', saveCreds)
+  newSock.ev.on('creds.update', saveCreds)
 
-  sock.ev.on('connection.update', async update => {
+  newSock.ev.on('connection.update', async update => {
     const { connection, lastDisconnect, qr } = update
 
     if (qr) {
@@ -62,10 +75,17 @@ async function connect(retries: number): Promise<void> {
 
     if (connection === 'open') {
       logger.info('WhatsApp connected successfully')
-      resolveConnected(sock!)
+      notifyConnected(newSock)
     }
 
     if (connection === 'close') {
+      sock = null
+
+      if (intentionalDisconnect) {
+        logger.info('WhatsApp disconnected')
+        return
+      }
+
       const reason = (lastDisconnect?.error as Boom)?.output?.statusCode
       logger.warn({ reason }, 'WhatsApp connection closed')
 

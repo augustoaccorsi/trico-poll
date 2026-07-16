@@ -1,7 +1,7 @@
 import cron from 'node-cron'
 import { fetchMatchesForTeam } from '../api/forza'
 import { sendPoll } from '../whatsapp/poll'
-import { getSocket } from '../whatsapp/client'
+import { startWhatsApp, disconnectWhatsApp } from '../whatsapp/client'
 import { addJob, clearAll, size } from './jobStore'
 import { logger } from '../utils/logger'
 import { parseGroupJids } from '../utils/env'
@@ -15,12 +15,13 @@ const TZ = process.env.TZ_BRASILIA ?? 'America/Sao_Paulo'
 const POLL_HOUR = parseInt(process.env.POLL_CRON_HOUR ?? '5', 10)
 
 async function logAvailableGroups(): Promise<void> {
-  const sock = await getSocket()
+  const sock = await startWhatsApp()
   const groups = await sock.groupFetchAllParticipating()
   logger.info('Available WhatsApp groups:')
   for (const [jid, meta] of Object.entries(groups)) {
-    logger.info({ jid, name: meta.subject }, '  group')
+    logger.info({ jid, name: (meta as { subject: string }).subject }, '  group')
   }
+  disconnectWhatsApp()
 }
 
 type MatchPoll = { match: ForzaMatch; groupJids: Set<string> }
@@ -57,7 +58,6 @@ export async function scheduleAllPolls(): Promise<void> {
 
   await logAvailableGroups()
 
-  const sock = await getSocket()
   const pollMap = await buildPollMap()
 
   logger.info({ uniqueMatches: pollMap.size }, 'Total unique matches to schedule')
@@ -91,12 +91,17 @@ export async function scheduleAllPolls(): Promise<void> {
     const task = cron.schedule(
       cronExpr,
       async () => {
-        for (const jid of jidsSnapshot) {
-          try {
-            await sendPoll(sock, jid, match)
-          } catch (err) {
-            logger.error({ err, matchId: match.id, jid }, 'Failed to send poll to group')
+        const sock = await startWhatsApp()
+        try {
+          for (const jid of jidsSnapshot) {
+            try {
+              await sendPoll(sock, jid, match)
+            } catch (err) {
+              logger.error({ err, matchId: match.id, jid }, 'Failed to send poll to group')
+            }
           }
+        } finally {
+          disconnectWhatsApp()
         }
       },
       { timezone: TZ }
