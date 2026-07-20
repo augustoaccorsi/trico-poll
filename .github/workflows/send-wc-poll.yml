@@ -1,8 +1,8 @@
 name: Send World Cup Poll
 
 on:
-  schedule:
-    - cron: '0 6 * * *' # 3AM BRT (UTC-3) — runs daily Jun 11–Jul 19 2026
+  #schedule:
+  #  - cron: '0 6 * * *' # 3AM BRT (UTC-3) — runs daily Jun 11–Jul 19 2026
   workflow_dispatch:
     inputs:
       date:
