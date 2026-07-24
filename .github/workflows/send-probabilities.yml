@@ -1,8 +1,8 @@
 name: Send Probabilities
 
 on:
-  # schedule:
-  #   - cron: '0 6 * * 2' # 5AM BRT (UTC-3) every Tuesday
+  schedule:
+    - cron: '0 6 * * 2' # 5AM BRT (UTC-3) every Tuesday
   workflow_dispatch:
 
 jobs:
