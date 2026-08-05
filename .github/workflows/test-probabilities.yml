@@ -30,10 +30,10 @@ jobs:
       - name: Pre-fetch UFMG HTML
         run: |
           mkdir -p /tmp/ufmg
-          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/champion.html "https://www.mat.ufmg.br/futebol/campeao_seriea/"
-          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/libertadores.html "https://www.mat.ufmg.br/futebol/classificacao-para-libertadores_seriea/"
-          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/sulamericana.html "https://www.mat.ufmg.br/futebol/classificacao-para-sulamericana_seriea/"
-          curl -sf --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/relegation.html "https://www.mat.ufmg.br/futebol/rebaixamento_seriea/"
+          curl -sfk --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/champion.html "https://www.mat.ufmg.br/futebol/campeao_seriea/"
+          curl -sfk --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/libertadores.html "https://www.mat.ufmg.br/futebol/classificacao-para-libertadores_seriea/"
+          curl -sfk --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/sulamericana.html "https://www.mat.ufmg.br/futebol/classificacao-para-sulamericana_seriea/"
+          curl -sfk --retry 3 --max-time 30 -A "Mozilla/5.0" -o /tmp/ufmg/relegation.html "https://www.mat.ufmg.br/futebol/rebaixamento_seriea/"
 
       - name: Send test probabilities
         env:
