@@ -38,7 +38,6 @@ jobs:
 
       - name: Check if already sent today
         id: check
-        if: github.event_name == 'schedule'
         run: |
           LAST_SENT="${{ vars.LAST_POLL_SENT }}"
           TODAY=$(TZ=America/Sao_Paulo date +%Y-%m-%d)
