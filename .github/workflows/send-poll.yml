@@ -36,7 +36,21 @@ jobs:
           mkdir -p auth_info_baileys
           echo "${{ secrets.WA_SESSION }}" | base64 -d | tar -xz -C auth_info_baileys
 
+      - name: Check if already sent today
+        id: check
+        if: github.event_name == 'schedule'
+        run: |
+          LAST_SENT="${{ vars.LAST_POLL_SENT }}"
+          TODAY=$(TZ=America/Sao_Paulo date +%Y-%m-%d)
+          if [ "$LAST_SENT" = "$TODAY" ]; then
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+            echo "Poll already sent today ($TODAY) — skipping cron run."
+          else
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Send poll if match today
+        if: steps.check.outputs.already_sent != 'true'
         env:
           WA_GREMIO_GROUP_JID: ${{ secrets.WA_GREMIO_GROUP_JID }}
           WA_INTER_GROUP_JID: ${{ secrets.WA_INTER_GROUP_JID }}
@@ -46,6 +60,14 @@ jobs:
           LOG_LEVEL: 'info'
           POLL_DATE: ${{ github.event.inputs.date }}
         run: npm run send-today
+
+      - name: Mark as sent today
+        if: steps.check.outputs.already_sent != 'true' && success()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TODAY=$(TZ=America/Sao_Paulo date +%Y-%m-%d)
+          gh variable set LAST_POLL_SENT --body "$TODAY" -R ${{ github.repository }}
 
       - name: Save updated session
         if: always()

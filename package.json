@@ -11,6 +11,7 @@
     "test:poll": "tsx src/test-poll.ts",
     "test:probabilities": "tsx src/test-probabilities.ts",
     "send-today": "tsx src/send-today.ts",
+    "send-today:local": "tsx src/send-today.ts && gh variable set LAST_POLL_SENT --body \"$(TZ=America/Sao_Paulo date +%Y-%m-%d)\"",
     "send-probabilities": "tsx src/send-probabilities.ts",
     "send-wc-today": "tsx src/send-wc-today.ts",
     "test:wc-poll": "tsx src/send-wc-today.ts",
